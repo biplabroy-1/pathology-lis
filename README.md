@@ -1,4 +1,4 @@
-# PathoLab LIS — Complete Diagnostic Laboratory Information System
+# PathoLab LIS — Complete Diagnostic Laboratory Information System (Multi Branch)
 
 A modern, full-featured Diagnostic Laboratory Information System (LIS) built with **Laravel 13**, **Tailwind CSS v4**, and **MySQL**. Designed for hospital networks, reference labs, and multi-branch diagnostic centers with NABL accreditation support.
 
