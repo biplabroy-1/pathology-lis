@@ -154,53 +154,12 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Role Switcher Dropdown (for testing and role demonstration) -->
-                <div class="relative" id="roleSwitcherWrap">
-                    <button type="button" onclick="document.getElementById('roleMenu').classList.toggle('hidden')"
-                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition">
-                        <span class="w-2 h-2 rounded-full {{ $currentUser?->isChiefPathologist() ? 'bg-purple-600' : ($currentUser?->isTechnician() ? 'bg-sky-600' : 'bg-emerald-600') }}"></span>
-                        <span class="hidden sm:inline text-slate-500">Role:</span>
-                        <span class="font-bold text-slate-800 max-w-[120px] sm:max-w-[160px] truncate">{{ $currentUser?->role }}</span>
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div id="roleMenu" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
-                        <div class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Switch Demo Role</div>
-                        <div class="px-3 pb-2 text-[11px] text-slate-500 leading-tight">Switch between accounts to test role-based menu options and permissions.</div>
-                        <form method="POST" action="{{ route('switch.role') }}" class="space-y-1 px-1.5">
-                            @csrf
-                            <button type="submit" name="email" value="admin@patholab.local"
-                                    class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between {{ $currentUser?->isChiefPathologist() ? 'bg-purple-50 text-purple-900 font-bold border border-purple-200' : 'hover:bg-slate-50 text-slate-700' }}">
-                                <div>
-                                    <div class="font-semibold text-slate-900">Dr. Ananya Sharma</div>
-                                    <div class="text-[11px] text-purple-700">Chief Pathologist (Full Access)</div>
-                                </div>
-                                @if($currentUser?->isChiefPathologist())
-                                    <span class="text-purple-600 font-bold text-sm">✓</span>
-                                @endif
-                            </button>
-                            <button type="submit" name="email" value="tech@patholab.local"
-                                    class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between {{ $currentUser?->isTechnician() ? 'bg-sky-50 text-sky-900 font-bold border border-sky-200' : 'hover:bg-slate-50 text-slate-700' }}">
-                                <div>
-                                    <div class="font-semibold text-slate-900">Rohan Kulkarni</div>
-                                    <div class="text-[11px] text-sky-700">Lab Technician (Clinical & QC Only)</div>
-                                </div>
-                                @if($currentUser?->isTechnician())
-                                    <span class="text-sky-600 font-bold text-sm">✓</span>
-                                @endif
-                            </button>
-                            <button type="submit" name="email" value="desk@patholab.local"
-                                    class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between {{ $currentUser?->isFrontDesk() ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200' : 'hover:bg-slate-50 text-slate-700' }}">
-                                <div>
-                                    <div class="font-semibold text-slate-900">Priya Nair</div>
-                                    <div class="text-[11px] text-emerald-700">Front Desk & Billing (Patients & Billing)</div>
-                                </div>
-                                @if($currentUser?->isFrontDesk())
-                                    <span class="text-emerald-600 font-bold text-sm">✓</span>
-                                @endif
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                <!-- Current role badge (read-only) -->
+                <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700">
+                    <span class="w-2 h-2 rounded-full {{ $currentUser?->isChiefPathologist() ? 'bg-purple-600' : ($currentUser?->isTechnician() ? 'bg-sky-600' : 'bg-emerald-600') }}"></span>
+                    <span class="text-slate-500">Role:</span>
+                    <span class="font-bold text-slate-800 max-w-[160px] truncate">{{ $currentUser?->role }}</span>
+                </span>
 
                 @if($currentUser?->canAccessRoute('lab.critical') && $openAlerts > 0)
                     <a href="{{ route('lab.critical') }}" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100">
@@ -252,16 +211,5 @@
         </main>
     </div>
 </div>
-
-<script>
-// Click outside to close role menu
-document.addEventListener('click', function(e) {
-    const wrap = document.getElementById('roleSwitcherWrap');
-    const menu = document.getElementById('roleMenu');
-    if (wrap && menu && !wrap.contains(e.target)) {
-        menu.classList.add('hidden');
-    }
-});
-</script>
 </body>
 </html>

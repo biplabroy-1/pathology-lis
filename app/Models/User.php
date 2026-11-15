@@ -45,7 +45,7 @@ class User extends Authenticatable
      */
     public function canAccessRoute(?string $routeName): bool
     {
-        if (!$routeName || in_array($routeName, ['switch.role', 'logout'])) {
+        if (!$routeName || $routeName === 'logout') {
             return true;
         }
 

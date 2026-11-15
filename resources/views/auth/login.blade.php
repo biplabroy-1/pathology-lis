@@ -62,32 +62,8 @@
                 Sign In to Laboratory
             </button>
         </form>
-
-        <div class="mt-6 pt-5 border-t border-slate-100">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Demo Staff Accounts (Password: <code class="text-teal-700">password</code>)</div>
-            <div class="space-y-1.5 text-xs">
-                <button type="button" onclick="fillLogin('admin@patholab.local')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-teal-50 border border-slate-200/70 flex justify-between items-center transition">
-                    <span class="font-semibold text-slate-800">Dr. Ananya Sharma</span>
-                    <span class="text-[11px] text-teal-700 font-medium">Chief Pathologist</span>
-                </button>
-                <button type="button" onclick="fillLogin('tech@patholab.local')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-teal-50 border border-slate-200/70 flex justify-between items-center transition">
-                    <span class="font-semibold text-slate-800">Rohan Kulkarni</span>
-                    <span class="text-[11px] text-sky-700 font-medium">Lab Technician</span>
-                </button>
-                <button type="button" onclick="fillLogin('desk@patholab.local')" class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-teal-50 border border-slate-200/70 flex justify-between items-center transition">
-                    <span class="font-semibold text-slate-800">Priya Nair</span>
-                    <span class="text-[11px] text-slate-600 font-medium">Front Desk & Billing</span>
-                </button>
-            </div>
-        </div>
     </div>
 </div>
-<script>
-function fillLogin(email) {
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = 'password';
-}
-</script>
 </body>
 </html>
 
