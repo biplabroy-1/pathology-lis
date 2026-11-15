@@ -22,7 +22,7 @@ class LabWorkflowController extends Controller
         ])->get();
 
         $activeDept = $slug ? $departments->firstWhere('slug', $slug) : $departments->first();
-        $orders = LabOrder::with(['patient', 'test', 'sample', 'technician'])
+        $orders = LabOrder::with(['patient', 'test.parameters', 'sample', 'technician', 'results', 'report'])
             ->when($activeDept, fn ($q) => $q->where('department_id', $activeDept->id))
             ->latest()
             ->take(20)
