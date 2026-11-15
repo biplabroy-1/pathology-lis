@@ -38,3 +38,4 @@ class CheckRoleAccess
         return $next($request);
     }
 }
+

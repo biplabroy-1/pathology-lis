@@ -17,3 +17,4 @@ class PreventiveReminder extends Model
         return $this->belongsTo(Patient::class);
     }
 }
+

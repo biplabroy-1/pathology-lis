@@ -17,3 +17,4 @@ class CrmCampaign extends Model
         return $this->hasMany(CrmLead::class, 'campaign_name', 'name');
     }
 }
+
