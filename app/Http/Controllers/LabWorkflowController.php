@@ -71,12 +71,52 @@ class LabWorkflowController extends Controller
 
     public function results(Request $request)
     {
-        $orders = LabOrder::with(['patient', 'test.parameters', 'department', 'sample', 'results'])
-            ->whereIn('status', ['Pending', 'Sample Received', 'In-Progress', 'Rerun', 'Result Entered', 'Verified', 'Approved', 'Delivered'])
-            ->latest()
-            ->paginate(12);
+        $deptId = $request->get('department_id');
+        $status = $request->get('status');
+        $priority = $request->get('priority');
+        $search = $request->get('q');
 
-        return view('lab.results', compact('orders'));
+        $orders = LabOrder::with(['patient', 'test.parameters', 'department', 'sample', 'results', 'technician', 'report'])
+            ->when($deptId, fn ($q) => $q->where('department_id', $deptId))
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($priority, fn ($q) => $q->where('priority', $priority))
+            ->when($search, fn ($q) => $q->where(function ($sub) use ($search) {
+                $sub->whereHas('patient', fn ($pq) => $pq->where('name', 'like', "%{$search}%")->orWhere('uhid', 'like', "%{$search}%"))
+                    ->orWhereHas('sample', fn ($sq) => $sq->where('sample_id_code', 'like', "%{$search}%")->orWhere('barcode_value', 'like', "%{$search}%"));
+            }))
+            ->orderByRaw("FIELD(priority, 'STAT', 'Urgent', 'Routine')")
+            ->latest()
+            ->paginate(15);
+
+        $departments = Department::orderBy('name')->get();
+
+        $counts = [
+            'all' => LabOrder::count(),
+            'pending' => LabOrder::whereIn('status', ['Pending', 'Sample Received', 'In-Progress'])->count(),
+            'entered' => LabOrder::where('status', 'Result Entered')->count(),
+            'verified' => LabOrder::where('status', 'Verified')->count(),
+            'approved' => LabOrder::whereIn('status', ['Approved', 'Delivered'])->count(),
+        ];
+
+        return view('lab.results', compact('orders', 'departments', 'deptId', 'status', 'priority', 'search', 'counts'));
+    }
+
+    public function showResultDetail(LabOrder $labOrder)
+    {
+        $labOrder->load([
+            'patient',
+            'test.parameters',
+            'department',
+            'sample.collector',
+            'sample.doctor',
+            'technician',
+            'results',
+            'report',
+            'branch',
+            'criticalAlerts',
+        ]);
+
+        return view('lab.results_detail', compact('labOrder'));
     }
 
     public function saveResults(Request $request, LabOrder $labOrder)

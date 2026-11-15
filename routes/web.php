@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/worklist', [LabWorkflowController::class, 'worklist'])->name('lab.worklist');
     Route::patch('/worklist/{labOrder}', [LabWorkflowController::class, 'updateWorklist'])->name('lab.worklist.update');
     Route::get('/results', [LabWorkflowController::class, 'results'])->name('lab.results');
+    Route::get('/results/{labOrder}', [LabWorkflowController::class, 'showResultDetail'])->name('lab.results.detail');
     Route::post('/results/{labOrder}', [LabWorkflowController::class, 'saveResults'])->name('lab.results.save');
     Route::get('/reports', [LabWorkflowController::class, 'reports'])->name('lab.reports');
     Route::get('/reports/{labReport}', [LabWorkflowController::class, 'showReport'])->name('lab.reports.show');
