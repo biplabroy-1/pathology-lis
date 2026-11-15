@@ -18,8 +18,11 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Protected Diagnostic Lab System (Requires Login)
-Route::middleware('auth')->group(function () {
+// Protected Diagnostic Lab System (Requires Login & Role Access)
+Route::middleware(['auth', 'role.access'])->group(function () {
+    // Quick Demo Role Switcher
+    Route::post('/switch-role', [AuthController::class, 'switchRole'])->name('switch.role');
+
     // 1. Dashboard & Global Search
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [DashboardController::class, 'search'])->name('search');

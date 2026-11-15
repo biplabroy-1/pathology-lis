@@ -9,6 +9,8 @@
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-100 selection:text-teal-900">
 @php
     $openAlerts = \App\Models\CriticalAlert::where('status', 'Open')->count();
+    $currentUser = auth()->user();
+
     $navGroups = [
         'Overview' => [
             ['route' => 'dashboard', 'label' => 'Dashboard & Analytics', 'match' => 'dashboard'],
@@ -23,30 +25,30 @@
             ['route' => 'phlebotomy.index', 'label' => 'Home Phlebotomy', 'match' => 'phlebotomy.*'],
             ['route' => 'lab.departments', 'label' => '11 Lab Departments', 'match' => 'lab.departments'],
             ['route' => 'lab.worklist', 'label' => 'Worklist & Processing', 'match' => 'lab.worklist'],
-            ['route' => 'lab.results', 'label' => 'Result Verification', 'match' => 'lab.results'],
+            ['route' => 'lab.results', 'label' => 'Result Verification', 'match' => 'lab.results*'],
             ['route' => 'lab.reports', 'label' => 'Reports & QR Delivery', 'match' => 'lab.reports*'],
             ['route' => 'lab.critical', 'label' => 'Critical Alerts', 'match' => 'lab.critical', 'badge' => $openAlerts],
         ],
         'Catalog & Quality' => [
-            ['route' => 'catalog.tests', 'label' => 'Test Master (16 Cats)', 'match' => 'catalog.tests'],
-            ['route' => 'catalog.packages', 'label' => 'Health Packages', 'match' => 'catalog.packages'],
-            ['route' => 'ops.equipment', 'label' => 'Analyzers & Equipment', 'match' => 'ops.equipment'],
-            ['route' => 'ops.inventory', 'label' => 'Reagents & Inventory', 'match' => 'ops.inventory'],
-            ['route' => 'ops.qc', 'label' => 'QC (Levey-Jennings)', 'match' => 'ops.qc'],
+            ['route' => 'catalog.tests', 'label' => 'Test Master (16 Cats)', 'match' => 'catalog.tests*'],
+            ['route' => 'catalog.packages', 'label' => 'Health Packages', 'match' => 'catalog.packages*'],
+            ['route' => 'ops.equipment', 'label' => 'Analyzers & Equipment', 'match' => 'ops.equipment*'],
+            ['route' => 'ops.inventory', 'label' => 'Reagents & Inventory', 'match' => 'ops.inventory*'],
+            ['route' => 'ops.qc', 'label' => 'QC (Levey-Jennings)', 'match' => 'ops.qc*'],
         ],
         'Network & Portals' => [
-            ['route' => 'network.doctors', 'label' => 'Doctors & Referrers', 'match' => 'network.doctors'],
-            ['route' => 'network.corporates', 'label' => 'Corporates & Hospitals', 'match' => 'network.corporates'],
-            ['route' => 'network.branches', 'label' => 'Multi-Branch Network', 'match' => 'network.branches'],
+            ['route' => 'network.doctors', 'label' => 'Doctors & Referrers', 'match' => 'network.doctors*'],
+            ['route' => 'network.corporates', 'label' => 'Corporates & Hospitals', 'match' => 'network.corporates*'],
+            ['route' => 'network.branches', 'label' => 'Multi-Branch Network', 'match' => 'network.branches*'],
             ['route' => 'portal.doctor', 'label' => 'Doctor Portal', 'match' => 'portal.doctor'],
             ['route' => 'portal.patient', 'label' => 'Patient Portal', 'match' => 'portal.patient'],
         ],
         'Admin & Integrations' => [
-            ['route' => 'admin.hr', 'label' => 'HR & Staff', 'match' => 'admin.hr'],
-            ['route' => 'admin.finance', 'label' => 'Finance & Accounting', 'match' => 'admin.finance'],
-            ['route' => 'admin.crm', 'label' => 'Marketing & CRM', 'match' => 'admin.crm'],
-            ['route' => 'admin.compliance', 'label' => 'Compliance & NABL', 'match' => 'admin.compliance'],
-            ['route' => 'admin.integrations', 'label' => 'HL7 / DICOM / APIs', 'match' => 'admin.integrations'],
+            ['route' => 'admin.hr', 'label' => 'HR & Staff', 'match' => 'admin.hr*'],
+            ['route' => 'admin.finance', 'label' => 'Finance & Accounting', 'match' => 'admin.finance*'],
+            ['route' => 'admin.crm', 'label' => 'Marketing & CRM', 'match' => 'admin.crm*'],
+            ['route' => 'admin.compliance', 'label' => 'Compliance & NABL', 'match' => 'admin.compliance*'],
+            ['route' => 'admin.integrations', 'label' => 'HL7 / DICOM / APIs', 'match' => 'admin.integrations*'],
         ],
     ];
 @endphp
@@ -66,38 +68,59 @@
             </div>
         </div>
 
+        <!-- Role Banner inside Sidebar -->
+        <div class="px-4 py-2 border-b border-slate-100 bg-slate-50/50">
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Active Role Scope</div>
+            <div class="flex items-center gap-2 mt-0.5">
+                <span class="w-2 h-2 rounded-full {{ $currentUser?->isChiefPathologist() ? 'bg-purple-600' : ($currentUser?->isTechnician() ? 'bg-sky-600' : 'bg-emerald-600') }}"></span>
+                <span class="text-xs font-bold text-slate-800 truncate">{{ $currentUser?->role ?? 'Authorized Staff' }}</span>
+            </div>
+        </div>
+
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
             @foreach($navGroups as $groupName => $items)
-                <div>
-                    <div class="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{{ $groupName }}</div>
-                    <div class="space-y-0.5">
-                        @foreach($items as $item)
-                            @php $active = request()->routeIs($item['match']); @endphp
-                            <a href="{{ route($item['route']) }}"
-                               class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ $active ? 'bg-teal-50 text-teal-700 border border-teal-200/70' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                                <span class="truncate">{{ $item['label'] }}</span>
-                                @if(!empty($item['badge']))
-                                    <span class="ml-2 px-1.5 py-0.5 text-[11px] font-bold rounded-full bg-rose-100 text-rose-700">{{ $item['badge'] }}</span>
-                                @endif
-                            </a>
-                        @endforeach
+                @php
+                    $visibleItems = collect($items)->filter(function($item) use ($currentUser) {
+                        return $currentUser?->canAccessRoute($item['route']);
+                    });
+                @endphp
+                @if($visibleItems->isNotEmpty())
+                    <div>
+                        <div class="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{{ $groupName }}</div>
+                        <div class="space-y-0.5">
+                            @foreach($visibleItems as $item)
+                                @php $active = request()->routeIs($item['match']); @endphp
+                                <a href="{{ route($item['route']) }}"
+                                   class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ $active ? 'bg-teal-50 text-teal-700 border border-teal-200/70' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                    <span class="truncate">{{ $item['label'] }}</span>
+                                    @if(!empty($item['badge']))
+                                        <span class="ml-2 px-1.5 py-0.5 text-[11px] font-bold rounded-full bg-rose-100 text-rose-700">{{ $item['badge'] }}</span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @endif
             @endforeach
         </nav>
 
         <div class="p-3 border-t border-slate-200 bg-slate-50/70">
             @php
-                $userName = auth()->user()?->name ?? 'Staff User';
-                $userRole = auth()->user()?->role ?? 'Authorized Staff';
+                $userName = $currentUser?->name ?? 'Staff User';
+                $userRole = $currentUser?->role ?? 'Authorized Staff';
                 $initials = collect(explode(' ', $userName))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->implode('');
+                $badgeClasses = $currentUser?->isChiefPathologist() 
+                    ? 'bg-purple-100 text-purple-800 border-purple-200' 
+                    : ($currentUser?->isTechnician() ? 'bg-sky-100 text-sky-800 border-sky-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200');
             @endphp
             <div class="flex items-center justify-between gap-2 px-2 py-1.5">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold shrink-0">{{ $initials }}</div>
                     <div class="min-w-0">
                         <div class="text-xs font-semibold text-slate-900 truncate">{{ $userName }}</div>
-                        <div class="text-[11px] text-slate-500 truncate">{{ $userRole }}</div>
+                        <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold rounded border {{ $badgeClasses }} truncate max-w-full leading-tight">
+                            {{ $userRole }}
+                        </span>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
@@ -130,16 +153,71 @@
                 </form>
             </div>
 
-            <div class="flex items-center gap-3">
-                @if($openAlerts > 0)
-                    <a href="{{ route('lab.critical') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Role Switcher Dropdown (for testing and role demonstration) -->
+                <div class="relative" id="roleSwitcherWrap">
+                    <button type="button" onclick="document.getElementById('roleMenu').classList.toggle('hidden')"
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition">
+                        <span class="w-2 h-2 rounded-full {{ $currentUser?->isChiefPathologist() ? 'bg-purple-600' : ($currentUser?->isTechnician() ? 'bg-sky-600' : 'bg-emerald-600') }}"></span>
+                        <span class="hidden sm:inline text-slate-500">Role:</span>
+                        <span class="font-bold text-slate-800 max-w-[120px] sm:max-w-[160px] truncate">{{ $currentUser?->role }}</span>
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="roleMenu" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
+                        <div class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Switch Demo Role</div>
+                        <div class="px-3 pb-2 text-[11px] text-slate-500 leading-tight">Switch between accounts to test role-based menu options and permissions.</div>
+                        <form method="POST" action="{{ route('switch.role') }}" class="space-y-1 px-1.5">
+                            @csrf
+                            <button type="submit" name="email" value="admin@patholab.local"
+                                    class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between {{ $currentUser?->isChiefPathologist() ? 'bg-purple-50 text-purple-900 font-bold border border-purple-200' : 'hover:bg-slate-50 text-slate-700' }}">
+                                <div>
+                                    <div class="font-semibold text-slate-900">Dr. Ananya Sharma</div>
+                                    <div class="text-[11px] text-purple-700">Chief Pathologist (Full Access)</div>
+                                </div>
+                                @if($currentUser?->isChiefPathologist())
+                                    <span class="text-purple-600 font-bold text-sm">✓</span>
+                                @endif
+                            </button>
+                            <button type="submit" name="email" value="tech@patholab.local"
+                                    class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between {{ $currentUser?->isTechnician() ? 'bg-sky-50 text-sky-900 font-bold border border-sky-200' : 'hover:bg-slate-50 text-slate-700' }}">
+                                <div>
+                                    <div class="font-semibold text-slate-900">Rohan Kulkarni</div>
+                                    <div class="text-[11px] text-sky-700">Lab Technician (Clinical & QC Only)</div>
+                                </div>
+                                @if($currentUser?->isTechnician())
+                                    <span class="text-sky-600 font-bold text-sm">✓</span>
+                                @endif
+                            </button>
+                            <button type="submit" name="email" value="desk@patholab.local"
+                                    class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between {{ $currentUser?->isFrontDesk() ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200' : 'hover:bg-slate-50 text-slate-700' }}">
+                                <div>
+                                    <div class="font-semibold text-slate-900">Priya Nair</div>
+                                    <div class="text-[11px] text-emerald-700">Front Desk & Billing (Patients & Billing)</div>
+                                </div>
+                                @if($currentUser?->isFrontDesk())
+                                    <span class="text-emerald-600 font-bold text-sm">✓</span>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                @if($currentUser?->canAccessRoute('lab.critical') && $openAlerts > 0)
+                    <a href="{{ route('lab.critical') }}" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100">
                         <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
                         {{ $openAlerts }} Critical Alert{{ $openAlerts > 1 ? 's' : '' }}
                     </a>
                 @endif
-                <a href="{{ route('billing.index') }}" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition">
-                    + New Bill / Order
-                </a>
+
+                @if($currentUser?->canAccessRoute('billing.index'))
+                    <a href="{{ route('billing.index') }}" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition">
+                        + New Bill / Order
+                    </a>
+                @elseif($currentUser?->canAccessRoute('lab.worklist'))
+                    <a href="{{ route('lab.worklist') }}" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition">
+                        ⚡ Clinical Worklist
+                    </a>
+                @endif
             </div>
         </header>
 
@@ -152,8 +230,12 @@
                 </div>
             @endif
             @if(session('error'))
-                <div class="no-print mb-5 px-4 py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-medium">
-                    {{ session('error') }}
+                <div class="no-print mb-5 px-4 py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-medium flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-rose-600 hover:text-rose-900 text-xs font-bold">✕</button>
                 </div>
             @endif
             @if($errors->any())
@@ -170,6 +252,16 @@
         </main>
     </div>
 </div>
+
+<script>
+// Click outside to close role menu
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('roleSwitcherWrap');
+    const menu = document.getElementById('roleMenu');
+    if (wrap && menu && !wrap.contains(e.target)) {
+        menu.classList.add('hidden');
+    }
+});
+</script>
 </body>
 </html>
-

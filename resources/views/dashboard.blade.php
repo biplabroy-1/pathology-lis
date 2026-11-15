@@ -17,24 +17,28 @@
     </form>
 </div>
 
-<!-- 10 Core KPI Cards -->
+<!-- Core Role-Tailored KPI Cards -->
 <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
     @php
         $kpis = [
-            ['Total Patients', number_format($stats['total_patients']), 'Registered UHIDs', 'text-teal-700 bg-teal-50 border-teal-100', route('patients.index')],
-            ["Today's Appointments", $stats['today_appointments'], 'Scheduled & Walk-in', 'text-sky-700 bg-sky-50 border-sky-100', route('appointments.index')],
-            ["Today's Samples", $stats['today_samples'], 'Accessioned today', 'text-cyan-700 bg-cyan-50 border-cyan-100', route('samples.index')],
-            ['Pending Investigations', $stats['pending_investigations'], 'Active lab worklist', 'text-amber-700 bg-amber-50 border-amber-100', route('lab.worklist')],
-            ['Awaiting Approval', $stats['awaiting_approval'], 'Pathologist sign-off', 'text-indigo-700 bg-indigo-50 border-indigo-100', route('lab.results')],
-            ['Reports Delivered', $stats['reports_delivered'], 'WhatsApp / Email / Portal', 'text-emerald-700 bg-emerald-50 border-emerald-100', route('lab.reports')],
-            ['Critical Alerts', $stats['critical_alerts'], 'Immediate escalation', 'text-rose-700 bg-rose-50 border-rose-200', route('lab.critical')],
-            ['Daily Revenue', '₹' . number_format($stats['daily_revenue'], 0), 'Today collections', 'text-teal-700 bg-teal-50 border-teal-100', route('billing.index')],
-            ['Pending Payments', '₹' . number_format($stats['pending_payments'], 0), 'Retail dues', 'text-orange-700 bg-orange-50 border-orange-100', route('billing.index')],
-            ['Corporate Outstanding', '₹' . number_format($stats['corporate_outstanding'], 0), 'B2B credit balance', 'text-slate-700 bg-slate-100 border-slate-200', route('network.corporates')],
+            ['Total Patients', number_format($stats['total_patients']), 'Registered UHIDs', 'text-teal-700 bg-teal-50 border-teal-100', 'patients.index'],
+            ["Today's Appointments", $stats['today_appointments'], 'Scheduled & Walk-in', 'text-sky-700 bg-sky-50 border-sky-100', 'appointments.index'],
+            ["Today's Samples", $stats['today_samples'], 'Accessioned today', 'text-cyan-700 bg-cyan-50 border-cyan-100', 'samples.index'],
+            ['Pending Investigations', $stats['pending_investigations'], 'Active lab worklist', 'text-amber-700 bg-amber-50 border-amber-100', 'lab.worklist'],
+            ['Awaiting Approval', $stats['awaiting_approval'], 'Pathologist sign-off', 'text-indigo-700 bg-indigo-50 border-indigo-100', 'lab.results'],
+            ['Reports Delivered', $stats['reports_delivered'], 'WhatsApp / Email / Portal', 'text-emerald-700 bg-emerald-50 border-emerald-100', 'lab.reports'],
+            ['Critical Alerts', $stats['critical_alerts'], 'Immediate escalation', 'text-rose-700 bg-rose-50 border-rose-200', 'lab.critical'],
+            ['Daily Revenue', '₹' . number_format($stats['daily_revenue'], 0), 'Today collections', 'text-teal-700 bg-teal-50 border-teal-100', 'billing.index'],
+            ['Pending Payments', '₹' . number_format($stats['pending_payments'], 0), 'Retail dues', 'text-orange-700 bg-orange-50 border-orange-100', 'billing.index'],
+            ['Corporate Outstanding', '₹' . number_format($stats['corporate_outstanding'], 0), 'B2B credit balance', 'text-slate-700 bg-slate-100 border-slate-200', 'network.corporates'],
         ];
+
+        $visibleKpis = collect($kpis)->filter(function($k) {
+            return auth()->user()?->canAccessRoute($k[4]);
+        });
     @endphp
-    @foreach($kpis as [$label, $val, $sub, $tone, $link])
-        <a href="{{ $link }}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-teal-300 hover:shadow-sm transition block">
+    @foreach($visibleKpis as [$label, $val, $sub, $tone, $routeName])
+        <a href="{{ route($routeName) }}" class="bg-white rounded-xl border border-slate-200 p-4 hover:border-teal-300 hover:shadow-sm transition block">
             <div class="text-xs font-medium text-slate-500">{{ $label }}</div>
             <div class="mt-2 flex items-baseline justify-between">
                 <div class="text-2xl font-bold text-slate-900 tabular-nums">{{ $val }}</div>
@@ -44,8 +48,8 @@
     @endforeach
 </div>
 
-<!-- Critical Alerts Banner (if any) -->
-@if($openCriticalAlerts->isNotEmpty())
+<!-- Critical Alerts Banner (if accessible by role) -->
+@if(auth()->user()?->canAccessRoute('lab.critical') && $openCriticalAlerts->isNotEmpty())
 <div class="mb-6 bg-rose-50 border border-rose-200 rounded-xl p-4">
     <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2 text-rose-800 font-semibold text-sm">
@@ -77,11 +81,15 @@
     <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h2 class="text-base font-bold text-slate-900">7-Day Revenue & Test Volume</h2>
-                <p class="text-xs text-slate-500">Daily collections (₹) vs investigations processed</p>
+                <h2 class="text-base font-bold text-slate-900">7-Day Operations & Test Volume</h2>
+                <p class="text-xs text-slate-500">
+                    {{ auth()->user()?->isTechnician() ? 'Daily investigations workload processed' : 'Daily collections (₹) vs investigations processed' }}
+                </p>
             </div>
             <div class="flex items-center gap-4 text-xs font-medium">
-                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-teal-500"></span>Revenue</span>
+                @if(!auth()->user()?->isTechnician())
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-teal-500"></span>Revenue</span>
+                @endif
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-sky-500"></span>Test Volume</span>
             </div>
         </div>
@@ -93,7 +101,9 @@
             @foreach($chartDays as $day)
                 <div class="flex flex-col items-center gap-1 h-full justify-end">
                     <div class="w-full flex items-end justify-center gap-1.5 h-32">
-                        <div class="w-4 bg-teal-500/90 rounded-t transition-all" style="height: {{ max(8, round(($day['revenue'] / $maxRev) * 100)) }}%" title="₹{{ number_format($day['revenue']) }}"></div>
+                        @if(!auth()->user()?->isTechnician())
+                            <div class="w-4 bg-teal-500/90 rounded-t transition-all" style="height: {{ max(8, round(($day['revenue'] / $maxRev) * 100)) }}%" title="₹{{ number_format($day['revenue']) }}"></div>
+                        @endif
                         <div class="w-4 bg-sky-400/90 rounded-t transition-all" style="height: {{ max(8, round(($day['volume'] / $maxVol) * 100)) }}%" title="{{ $day['volume'] }} tests"></div>
                     </div>
                     <span class="text-[11px] font-medium text-slate-500">{{ $day['label'] }}</span>
@@ -104,8 +114,8 @@
 
     <!-- Sample Rejection & Processing Stats -->
     <div class="bg-white rounded-xl border border-slate-200 p-5">
-        <h2 class="text-base font-bold text-slate-900 mb-1">Sample Rejection & QC Stats</h2>
-        <p class="text-xs text-slate-500 mb-4">Pre-analytical sample quality breakdown</p>
+        <h2 class="text-base font-bold text-slate-900 mb-1">Sample Quality Telemetry</h2>
+        <p class="text-xs text-slate-500 mb-4">Pre-analytical sample rejection & completion status</p>
         @php
             $totS = max(1, $sampleStats['total']);
             $rejRate = round(($sampleStats['rejected'] / $totS) * 100, 1);
@@ -131,12 +141,14 @@
     </div>
 </div>
 
-<!-- Department & Machine Workload -->
+<!-- Department & Machine / Front Desk Workload -->
 <div class="grid lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-xl border border-slate-200 p-5">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-base font-bold text-slate-900">Department-Wise Workload</h2>
-            <a href="{{ route('lab.departments') }}" class="text-xs font-semibold text-teal-600 hover:underline">Open Dept Queues →</a>
+            @if(auth()->user()?->canAccessRoute('lab.departments'))
+                <a href="{{ route('lab.departments') }}" class="text-xs font-semibold text-teal-600 hover:underline">Open Dept Queues →</a>
+            @endif
         </div>
         <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
             @foreach($departmentWorkload as $dept)
@@ -154,12 +166,14 @@
         </div>
     </div>
 
+    @if(auth()->user()?->canAccessRoute('ops.equipment'))
+    <!-- Machine / Analyzer Workload (for Tech & Admin) -->
     <div class="bg-white rounded-xl border border-slate-200 p-5">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-base font-bold text-slate-900">Machine / Analyzer Workload</h2>
             <a href="{{ route('ops.equipment') }}" class="text-xs font-semibold text-teal-600 hover:underline">Manage Analyzers →</a>
         </div>
-        <div class="space-y-3">
+        <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
             @foreach($analyzers as $an)
                 <div class="p-3 rounded-lg border border-slate-200/80 flex items-center justify-between">
                     <div>
@@ -176,13 +190,46 @@
             @endforeach
         </div>
     </div>
+    @else
+    <!-- Front Desk Quick Action Hub -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-bold text-slate-900">Front Desk Quick Actions</h2>
+            <span class="text-xs font-medium text-slate-400">Reception & Operations</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{{ route('patients.index') }}" class="p-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50/40 transition group">
+                <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-105 transition">👤</div>
+                <div class="text-xs font-bold text-slate-800">New Patient UHID</div>
+                <div class="text-[11px] text-slate-500">Register OPD & walk-in</div>
+            </a>
+            <a href="{{ route('billing.index') }}" class="p-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50/40 transition group">
+                <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-105 transition">🧾</div>
+                <div class="text-xs font-bold text-slate-800">Create Bill & Order</div>
+                <div class="text-[11px] text-slate-500">Receipts & payments</div>
+            </a>
+            <a href="{{ route('appointments.index') }}" class="p-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50/40 transition group">
+                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-105 transition">📅</div>
+                <div class="text-xs font-bold text-slate-800">Appointments</div>
+                <div class="text-[11px] text-slate-500">Slot booking & scheduling</div>
+            </a>
+            <a href="{{ route('phlebotomy.index') }}" class="p-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50/40 transition group">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-105 transition">🛵</div>
+                <div class="text-xs font-bold text-slate-800">Home Phlebotomy</div>
+                <div class="text-[11px] text-slate-500">Dispatch home collections</div>
+            </a>
+        </div>
+    </div>
+    @endif
 </div>
 
 <!-- Recent Lab Orders -->
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
         <h2 class="text-base font-bold text-slate-900">Recent Laboratory Worklist</h2>
-        <a href="{{ route('lab.worklist') }}" class="text-xs font-semibold text-teal-600 hover:underline">View Full Worklist →</a>
+        @if(auth()->user()?->canAccessRoute('lab.worklist'))
+            <a href="{{ route('lab.worklist') }}" class="text-xs font-semibold text-teal-600 hover:underline">View Full Worklist →</a>
+        @endif
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left">
@@ -216,4 +263,3 @@
     </div>
 </div>
 @endsection
-

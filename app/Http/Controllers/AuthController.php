@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\LabAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +38,24 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
+    public function switchRole(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $targetUser = User::where('email', $request->email)->where('is_active', true)->first();
+        if ($targetUser) {
+            Auth::login($targetUser);
+            $request->session()->regenerate();
+            LabAudit::log('Role Switched', 'Authentication', $targetUser->email, "Switched role to {$targetUser->role}", $targetUser->name);
+
+            return redirect()->route('dashboard')->with('success', "Active Session switched to {$targetUser->name} ({$targetUser->role}). Navigation and permissions updated.");
+        }
+
+        return back()->with('error', 'Unable to switch to requested account.');
+    }
+
     public function logout(Request $request)
     {
         $user = Auth::user();
@@ -51,4 +70,3 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'You have been signed out.');
     }
 }
-
