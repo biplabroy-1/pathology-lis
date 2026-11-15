@@ -97,6 +97,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/finance/export', [AdminController::class, 'exportFinanceCsv'])->name('admin.finance.export');
     Route::get('/crm', [AdminController::class, 'crm'])->name('admin.crm');
     Route::post('/crm/leads', [AdminController::class, 'storeLead'])->name('admin.crm.leads');
+    Route::patch('/crm/leads/{lead}', [AdminController::class, 'updateLeadStatus'])->name('admin.crm.leads.update');
+    Route::post('/crm/campaigns', [AdminController::class, 'storeCampaign'])->name('admin.crm.campaigns');
+    Route::post('/crm/reminders', [AdminController::class, 'storeReminder'])->name('admin.crm.reminders');
+    Route::post('/crm/reminders/{reminder}/send', [AdminController::class, 'sendReminder'])->name('admin.crm.reminders.send');
+    Route::post('/crm/tickets', [AdminController::class, 'storeTicket'])->name('admin.crm.tickets');
+    Route::patch('/crm/tickets/{ticket}', [AdminController::class, 'updateTicket'])->name('admin.crm.tickets.update');
     Route::get('/compliance', [AdminController::class, 'compliance'])->name('admin.compliance');
     Route::post('/compliance/backup', [AdminController::class, 'triggerBackup'])->name('admin.compliance.backup');
     Route::get('/integrations', [AdminController::class, 'integrations'])->name('admin.integrations');
